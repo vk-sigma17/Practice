@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const { userAuth } = require('./middleware/auth');
 
 // app.get("/user/:userId/:name/:password", (req, res) => {
 //     console.log(req.params)
@@ -36,20 +37,32 @@ const app = express();
 //     res.send("You will see this from 2nd Route")
 // })
 
-app.use("/user", 
-    (req, res, next) => {
-        console.log("handling Router 1");
-        next();
-    },
-    (req, res, next) => {
-        console.log("handling Router 2");
-        next();
-    },
-    (req, res) => {
-        res.send("Router 3");
-    }
-);
+// Auth
+// app.use("/user", userAuth,
+//     (req, res, next) => {
+//         console.log("handling Router 1");
+//         next();
+//     },
+//     (req, res, next) => {
+//         console.log("handling Router 2");
+//         next();
+//     },
+//     (req, res) => {
+//         res.send("Router 3");
+//     }
+// );
 
+
+// Error handling 
+app.get("/user", (req, res) => {
+    try{
+        throw new Error("DNNDNDNDN");
+        console.log("user Data Sent");
+    }
+    catch(err){
+        res.status(500).send("some Error Occur");
+    }
+} )
 
 app.listen(3333, () => {
     console.log("server running on port 3333");
