@@ -1,69 +1,39 @@
 const express = require('express');
 const app = express();
-const { userAuth } = require('./middleware/auth');
+// const { userAuth } = require('./middleware/auth');
+const mongooose = require('mongoose');
+const { connectDB } = require('./config/database');
+const User = require('./model/user');
 
-// app.get("/user/:userId/:name/:password", (req, res) => {
-//     console.log(req.params)
-//     res.send("Hello World");
-// })
+app.use(express.json()); //middleware to convert json data in js object.
 
-// app.post("/", (req, res) => {
-//     res.send({
-//         name: "vikash",
-//         age: 26
-//     });
-// })
-// app.delete("/", (req, res) => {
-//     res.send("Data Deleted Successfully!");
-// })
-
-// 1st
-// app.use("/user", (req, res, next) => {
-//     console.log("This is 1st Response!!");
-//     res.send("Response 1");
-//     next();
-// }, (req, res) => {
-//     res.send("response 2")
-// })
-
-// 2nd
-// app.get("/skip", (req, res, next) => {
-//     console.log("this handler will be skipped!")
-//     next('route');
-// }, (req, res) => {
-//     res.send("You will not see this");
-// })
-// app.get("/skip", (req, res) => {
-//     res.send("You will see this from 2nd Route")
-// })
-
-// Auth
-// app.use("/user", userAuth,
-//     (req, res, next) => {
-//         console.log("handling Router 1");
-//         next();
-//     },
-//     (req, res, next) => {
-//         console.log("handling Router 2");
-//         next();
-//     },
-//     (req, res) => {
-//         res.send("Router 3");
-//     }
-// );
-
-
-// Error handling 
-app.get("/user", (req, res) => {
+app.post("/signup", async (req, res) => {
     try{
-        throw new Error("DNNDNDNDN");
-        console.log("user Data Sent");
+        // const newUser = new User({
+            //     firstName: "vikash",
+            //     lastName: "khowal",
+            //     email: "khowal123",
+            //     age: 26
+            // });
+        const newUser = new User(req.body);
+        await newUser.save();
+        res.status(201).send("User created successfully!");
     }
     catch(err){
-        res.status(500).send("some Error Occur");
+        console.error("error occured :", err);
+        res.status(500).send("Something went wrong!");
+        return;
     }
-} )
-
-app.listen(3333, () => {
-    console.log("server running on port 3333");
 })
+
+connectDB()
+    .then(() => {
+        console.log("Database Connecting...");
+        app.listen(3333, () => {
+            console.log("server running on port 3333");
+        })
+
+    })
+    .catch((err) => {
+        console.error("Database connection Failed!")
+    })
