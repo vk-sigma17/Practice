@@ -1,9 +1,18 @@
-const userAuth = (req, res, next) => {
-  const token = "abc123";
-  const isUserAuth = token === "abc123";
-  if (!isUserAuth) {
-    return res.status(401).send("unAutorized");
-  }
-  next();
-};
-module.exports = { userAuth };
+
+const validator = require('validator');
+
+const ValidateSignUpData = (req, res) => {
+    const {firstName, lastName, email, password} = req.body;
+
+    if(!firstName || !lastName){
+        throw new Error("Name is Not Valid");
+    }
+    if(!validator.isEmail(email)){
+        throw new Error("Email is Not Valid");
+    }
+    if(!validator.isStrongPassword(password)){
+        throw new Error("Please Enter a Strong Password!");
+    }
+}
+
+module.exports = { ValidateSignUpData };

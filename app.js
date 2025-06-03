@@ -1,21 +1,22 @@
 const express = require('express');
 const app = express();
-// const { userAuth } = require('./middleware/auth');
+const { ValidateSignUpData } = require("./middleware/auth");
 const mongooose = require('mongoose');
 const { connectDB } = require('./config/database');
 const User = require('./model/user');
+const bcrypt = require('bcrypt');
 
 app.use(express.json()); //middleware to convert json data in js object.
 
 app.post("/signup", async (req, res) => {
+    ValidateSignUpData(req)
     try{
-        // const newUser = new User({
-            //     firstName: "vikash",
-            //     lastName: "khowal",
-            //     email: "khowal123",
-            //     age: 26
-            // });
-        const newUser = new User(req.body);
+        const {firstName, lastName, email, password} = req.body;
+
+        const hashedPassword = await bcrypt.hash(password, 12);
+        // console.log("ABC :", hashedPassword);
+        
+        const newUser = new User({firstName, lastName, email, password: hashedPassword});
         await newUser.save();
         res.status(201).send("User created successfully!");
     }
@@ -23,6 +24,28 @@ app.post("/signup", async (req, res) => {
         console.error("error occured :", err);
         res.status(500).send("Something went wrong!");
         return;
+    }
+})
+
+// Login Api
+app.post("/login", async(req, res) => {
+    try{
+        const {email, password} = req.body;
+        // find user based on email
+        const user = await User.findOne({email: email});
+        if(!user){
+            res.status(404).send({ error: "Invalid credentials" });
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.password); //password from user exxtracted by email
+        if(isPasswordValid){
+            res.send("Login SuccessFully!");
+        }else{
+            res.status(404).send({ error: "Invalid credentials" });
+        }
+    }
+    catch(err){
+        console.error("ERROR :", err.message);
+        res.status(500).json({ error: "Something went wrong" });
     }
 })
 
