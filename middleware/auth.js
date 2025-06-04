@@ -1,18 +1,30 @@
+const User = require("../model/user");
+const jwt = require('jsonwebtoken');
 
-const validator = require('validator');
+const userAuth = async (req, res, next) => {
+    try{
+        const  token  = req.cookies.token;
 
-const ValidateSignUpData = (req, res) => {
-    const {firstName, lastName, email, password} = req.body;
+            if(!token){
+                throw new Error("Token is not Valid!!!")
+            }
+            // Validate the token
+            const decodedObj = await jwt.verify(token, 'sigma@12345')
+        
+            const {_id} = decodedObj;
+            // Find The User
+            const user = await User.findById(_id);
+            if(!user){
+                throw new Error("user not Found");
+                
+            }
+            req.user = user; //Attaching user to request
+            next()
 
-    if(!firstName || !lastName){
-        throw new Error("Name is Not Valid");
     }
-    if(!validator.isEmail(email)){
-        throw new Error("Email is Not Valid");
-    }
-    if(!validator.isStrongPassword(password)){
-        throw new Error("Please Enter a Strong Password!");
+    catch(err){
+        res.status(400).json({ error: err.message });
     }
 }
 
-module.exports = { ValidateSignUpData };
+module.exports = { userAuth };

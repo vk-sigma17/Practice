@@ -1,12 +1,17 @@
 const express = require('express');
 const app = express();
-const { ValidateSignUpData } = require("./middleware/auth");
+const { ValidateSignUpData } = require("./utils/validation");
 const mongooose = require('mongoose');
 const { connectDB } = require('./config/database');
 const User = require('./model/user');
 const bcrypt = require('bcrypt');
+const cookieParser = require("cookie-parser");
+const jwt = require('jsonwebtoken');
+// const { userAuth } = require("./middleware/auth");
+const { userAuth } = require('./middleware/auth');
 
 app.use(express.json()); //middleware to convert json data in js object.
+app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
     ValidateSignUpData(req)
@@ -36,8 +41,17 @@ app.post("/login", async(req, res) => {
         if(!user){
             res.status(404).send({ error: "Invalid credentials" });
         }
-        const isPasswordValid = await bcrypt.compare(password, user.password); //password from user exxtracted by email
+        // const isPasswordValid = await bcrypt.compare(password, user.password); //password from user exxtracted by email
+       
+       const isPasswordValid = await user.validatePassword(password);
         if(isPasswordValid){
+            // creating token & storing in cookie
+            // const token = await jwt.sign({_id: user._id}, "sigma@12345", {expiresIn: '1d'});
+            const token = await user.getJWT();
+            // console.log(token);
+            res.cookie("token", token, {
+                expires: new Date(Date.now() + 8 * 3600000)
+            });
             res.send("Login SuccessFully!");
         }else{
             res.status(404).send({ error: "Invalid credentials" });
@@ -50,13 +64,24 @@ app.post("/login", async(req, res) => {
 })
 
 // get one user by email id
-app.get("/getOne", async(req, res) => {
+app.get("/profile", userAuth, async(req, res) => {
     try{
-        const oneUser = await User.findOne({email: "vicky123"});
-        if(!oneUser){
-            res.status(404).send("No user Found!");
-        }
-        res.send(oneUser);
+        // // Get The cookie & token from cookie
+        // const token =  req.cookies.token;
+        // // const { token } = cookie;
+        // if(!token){
+        //     throw new Error("inValid Token");
+        // }
+        // // validatating Token
+        // const decodedToken = await jwt.verify(token, "@12sigma345");
+        // const { _id } = decodedToken;
+
+        // // find user by _id
+        // const oneUser = await User.findById(_id);
+        // if(!oneUser){
+        //     res.status(404).send("No user Found!");
+        // }
+        res.send(req.user);
     }
     catch(err){
         console.error("Error fetching user:", err);
