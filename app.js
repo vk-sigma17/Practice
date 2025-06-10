@@ -16,10 +16,12 @@ app.use(cookieParser());
 const authRouter = require('./routes/auth');
 const profileRouter = require("./routes/Profile");
 const requestRouter = require('./routes/request');
+const userRouter = require('./routes/user');
 
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
+app.use("/", userRouter)
 
 // app.post("/signup", async (req, res) => {
 //     ValidateSignUpData(req)

@@ -48,8 +48,12 @@ const userSchema = new mongoose.Schema({
             if(!["Male", "Female", "Other"].includes(value)){
                 throw new Error("Not a valid gender (Male , Female and other)")
             }
-        }
+        },
         // enum: ["Male", "Female", "Other"]
+        emum:{
+            values: ["Male", "Female", "Other"],
+            message: `{VALUE} is not valid Gender`
+        }
     },
     about: {
         type: String,
@@ -70,6 +74,9 @@ userSchema.methods.validatePassword = async function (passwordByInputUser) {
     const isValidPassword = await bcrypt.compare(passwordByInputUser, passwordHash);
     return isValidPassword;
 }
+
+// compound index for first & last Name
+userSchema.index({firstName: 1, lastName: 1});
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;
